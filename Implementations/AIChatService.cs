@@ -2,8 +2,6 @@
 using Dociq.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
-using Polly.Registry;
-using System.Runtime.CompilerServices;
 using ChatResponse = Dociq.Models.ChatResponse;
 
 namespace Dociq.Implementations
@@ -56,8 +54,8 @@ namespace Dociq.Implementations
         {
             var messages = new List<ChatMessage>();
 
-            if (!string.IsNullOrWhiteSpace(_settings.Anthropic.SystemPrompt))
-                messages.Add(new ChatMessage(ChatRole.System, _settings.Anthropic.SystemPrompt));
+            if (!string.IsNullOrWhiteSpace(_settings.SystemPrompt))
+                messages.Add(new ChatMessage(ChatRole.System, _settings.SystemPrompt));
 
             messages.Add(new ChatMessage(ChatRole.User, request.Message));
             return messages;
@@ -65,9 +63,9 @@ namespace Dociq.Implementations
 
         private ChatOptions BuildChatOptions() => new()
         {
-            ModelId = _settings.Anthropic.Model,
-            MaxOutputTokens = _settings.Anthropic.MaxTokens,
-            Temperature = _settings.Anthropic.Temperature
+            ModelId = _settings.Provider == "OpenAI" ? _settings.OpenAI.Model : _settings.Anthropic.Model,
+            MaxOutputTokens = _settings.MaxTokens,
+            Temperature = _settings.Temperature
         };
     }
 }

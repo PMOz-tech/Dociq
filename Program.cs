@@ -1,39 +1,41 @@
 using Dociq.DependencyInjection;
 using Scalar.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseSerilog((ctx, lc) => lc
+    .ReadFrom.Configuration(ctx.Configuration)
+    .WriteTo.Console()
+    .WriteTo.File("logs/dociq-.log", rollingInterval: RollingInterval.Day));
 
 builder.Services.AddAIChatServices();
+builder.Services.AddRagServices();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
 
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, _, _) =>
     {
-        document.Info.Title = "Dociq";
+        document.Info.Title   = "Dociq";
         document.Info.Version = "v1";
         document.Info.Description =
-            "Dociq is an intelligent document querying API built on Microsoft Extensions AI and Semantic Kernel." +
-            " Upload your documents and interact with them through natural language — powered by vector search, " +
-            "semantic embeddings, and retrieval-augmented generation.";
+            "Dociq is an intelligent document querying API built on Microsoft Extensions AI and Semantic Kernel. " +
+            "Upload PDF documents and interact with them through natural language â€” powered by hybrid vector search " +
+            "(dense + sparse RRF fusion), semantic embeddings, and retrieval-augmented generation with citations.";
         return Task.CompletedTask;
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     // Raw OpenAPI spec: GET /openapi/v1.json
     app.MapOpenApi();
 
-    // Interactive Swagger UI: GET /scalar/v1
+    // Interactive API docs: GET /scalar/v1
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("Dociq API");
@@ -41,11 +43,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
