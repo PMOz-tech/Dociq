@@ -1,0 +1,6 @@
+@Dociq_HostAddress = http://localhost:5126
+
+GET {{Dociq_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
